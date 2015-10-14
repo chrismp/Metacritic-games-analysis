@@ -1,7 +1,9 @@
 install.packages('Rcpp') # To make installation of 'dyplr' work
 install.packages('dplyr')
+install.packages('ggplot2')
 
 library(dplyr)
+library(ggplot2)
 
 gamesRaw <- read.csv('CSVs/gamedata.csv', header = TRUE, na.strings=c("NA","NULL"))
 games <- gamesRaw[,-2:-3] # Remove columns containing Metacritic page URL and boxart URL
@@ -26,3 +28,22 @@ games$ReleaseQuarter <- ifelse(games$ReleaseMonth <= 3, 1,
                         ifelse(games$ReleaseMonth <= 9, 3,
                                                         4))) # Add quarter column
 games <- mutate(games, ReleaseYearQuarter = paste(ReleaseYear,ReleaseQuarter,sep='Q')) # Combine year and quarter columns into new column
+
+# Histogram, Metascore distribution
+ggplot(games, aes(x=Metascore)) + 
+  geom_histogram(binwidth=1) +
+  geom_vline(
+    aes(xintercept=mean(Metascore)),
+    color="red"
+  )
+  # coord_flip() +
+  # scale_x_reverse()
+
+# Boxplot, Metascore by system
+ggplot(
+  games, 
+  aes(
+    x=reorder(System, -Metascore, FUN=median), 
+    y=Metascore
+  )
+) + geom_boxplot() + coord_flip()
