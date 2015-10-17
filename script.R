@@ -1,8 +1,11 @@
 install.packages('Rcpp') # To make installation of 'dyplr' work
 install.packages('dplyr')
+install.packages('plyr')
 install.packages('ggplot2')
 
+library(Rcpp)
 library(dplyr)
+library(plyr)
 library(ggplot2)
 
 gamesRaw <- read.csv('CSVs/gamedata.csv', header = TRUE, na.strings=c("NA","NULL"))
@@ -29,6 +32,8 @@ games$ReleaseQuarter <- ifelse(games$ReleaseMonth <= 3, 1,
                                                         4))) # Add quarter column
 games <- mutate(games, ReleaseYearQuarter = paste(ReleaseYear,ReleaseQuarter,sep='Q')) # Combine year and quarter columns into new column
 
+summary(games) # Min, Max, Median and other summary stats for each variable/column
+
 # Histogram, Metascore distribution
 ggplot(games, aes(x=Metascore)) + 
   geom_histogram(binwidth=1) +
@@ -36,8 +41,18 @@ ggplot(games, aes(x=Metascore)) +
     aes(xintercept=mean(Metascore)),
     color="red"
   )
-  # coord_flip() +
-  # scale_x_reverse()
+
+# Histogram, User score distribution
+ggplot(games, aes(x=UserScore)) + 
+  geom_histogram(binwidth=0.1) +
+  geom_vline(
+    aes(xintercept=mean(UserScore)),
+    color="red"
+  )
+
+
+
+
 
 # Boxplot, Metascore by system
 ggplot(
