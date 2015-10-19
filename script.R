@@ -1,11 +1,11 @@
 install.packages('Rcpp') # To make installation of 'dyplr' work
+# install.packages('plyr')
 install.packages('dplyr')
-install.packages('plyr')
 install.packages('ggplot2')
 
 library(Rcpp)
+# library(plyr)
 library(dplyr)
-library(plyr)
 library(ggplot2)
 
 gamesRaw <- read.csv('CSVs/gamedata.csv', header = TRUE, na.strings=c("NA","NULL"))
@@ -31,6 +31,18 @@ games$ReleaseQuarter <- ifelse(games$ReleaseMonth <= 3, 1,
                         ifelse(games$ReleaseMonth <= 9, 3,
                                                         4))) # Add quarter column
 games <- mutate(games, ReleaseYearQuarter = paste(ReleaseYear,ReleaseQuarter,sep='Q')) # Combine year and quarter columns into new column
+
+
+ggplot(
+  count(games,System),
+  aes(
+    x = reorder(System, n), 
+    y = n
+  )
+) + labs(x=NULL, y="Count") + 
+  geom_bar(stat="identity") + 
+  coord_flip() + 
+  scale_y_continuous(breaks=seq(0,4000,500))
 
 summary(games) # Min, Max, Median and other summary stats for each variable/column
 
