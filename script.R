@@ -1,10 +1,8 @@
-install.packages('Rcpp') # To make installation of 'dyplr' work
-# install.packages('plyr')
+install.packages('Rcpp') # Makes installation of 'dyplr' work
 install.packages('dplyr')
 install.packages('ggplot2')
 
 library(Rcpp)
-# library(plyr)
 library(dplyr)
 library(ggplot2)
 
@@ -32,8 +30,10 @@ games$ReleaseQuarter <- ifelse(games$ReleaseMonth <= 3, 1,
                                                         4))) # Add quarter column
 games <- mutate(games, ReleaseYearQuarter = paste(ReleaseYear,ReleaseQuarter,sep='Q')) # Combine year and quarter columns into new column
 
+
 summary(games) # Min, Max, Median and other summary stats for each variable/column
 
+## SINGLE-VARIABLE ANALYSES
 # System count
 ggplot(
   count(games,System),
@@ -178,7 +178,6 @@ ggplot(games, aes(x=Metascore)) +
     color="red"
   )
 
-
 # Histogram, User score distribution
 ggplot(games, aes(x=UserScore)) + 
   geom_histogram(binwidth=0.1) +
@@ -188,11 +187,58 @@ ggplot(games, aes(x=UserScore)) +
   )
 
 
-# Boxplot, Metascore by system
+## TOP GAMES BY CRITICS' AND USERS' SCORES
+topMetascores <- function(df){
+  df <- df[order(df$Metascore, decreasing = TRUE),]
+  return(df)
+}
+
+topUserScores <- function(df){
+  df <- df[order(df$UserScore, decreasing = TRUE),]
+  return(df)  
+}
+
+# filterColumns <- c(2:3,10:11,15:16,23)
+topAllMetascore <- games[order(-Metascore),]
+userCounts <- c(0,10,50,100,500,1000)
+
+for(i in userCounts){
+  varName <- paste('topAllUserScore',i,'Users', sep='')
+  assign(
+    varName,
+    topUserScores(games[which(Users >= i),])
+  )
+}
+
+for(i in unique(games$System)){
+  varName <- paste('top',i,'UserScore', sep='')
+  assign(
+    varName,
+    topUserScores(games[which(System == i),])
+  )
+  
+  varName <- paste('top',i,'Metascore', sep='')
+  assign(
+    varName,
+    topMetascores(games[which(System == i),])
+  )
+}
+
+
+## MULTIVARIATE ANALYSES
+# Boxplot, scores by system
 ggplot(
   games, 
   aes(
     x=reorder(System, -Metascore, FUN=median), 
     y=Metascore
+  )
+) + geom_boxplot() + coord_flip()
+
+ggplot(
+  games, 
+  aes(
+    x=reorder(System, -UserScore, FUN=median), 
+    y=UserScore
   )
 ) + geom_boxplot() + coord_flip()
