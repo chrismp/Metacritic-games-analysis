@@ -116,7 +116,10 @@ ggplot(
 ggplot(
   count(games,MetascoreCategory),
   aes(
-    x = reorder(MetascoreCategory, n), 
+    x = factor(
+      MetascoreCategory,
+      levels = c('Bad','Mixed','Good')
+    ), 
     y = n
   )
 ) + ggtitle("Metascore categories") +
@@ -128,7 +131,10 @@ ggplot(
 ggplot(
   count(games,UserScoreCategory),
   aes(
-    x = reorder(UserScoreCategory, n), 
+    x = factor(
+      UserScoreCategory,
+      levels = c('Bad','Mixed','Good')
+    ), 
     y = n
   )
 ) + ggtitle("User score categories") +
@@ -198,15 +204,14 @@ topUserScores <- function(df){
   return(df)  
 }
 
-# filterColumns <- c(2:3,10:11,15:16,23)
-topAllMetascore <- games[order(-Metascore),]
+topAllMetascore <- games[order(-games$Metascore),]
 userCounts <- c(0,10,50,100,500,1000)
 
 for(i in userCounts){
   varName <- paste('topAllUserScore',i,'Users', sep='')
   assign(
     varName,
-    topUserScores(games[which(Users >= i),])
+    topUserScores(games[which(games$Users >= i),])
   )
 }
 
@@ -214,13 +219,14 @@ for(i in unique(games$System)){
   varName <- paste('top',i,'UserScore', sep='')
   assign(
     varName,
-    topUserScores(games[which(System == i),])
+    topUserScores(
+      games[which(games$System == i & games$Users >= 10),])
   )
   
   varName <- paste('top',i,'Metascore', sep='')
   assign(
     varName,
-    topMetascores(games[which(System == i),])
+    topMetascores(games[which(games$System == i),])
   )
 }
 
