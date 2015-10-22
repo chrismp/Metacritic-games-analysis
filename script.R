@@ -33,7 +33,7 @@ games <- mutate(games, ReleaseYearQuarter = paste(ReleaseYear,ReleaseQuarter,sep
 
 summary(games) # Min, Max, Median and other summary stats for each variable/column
 
-## SINGLE-VARIABLE ANALYSES
+## SINGLE-VARIABLE EXPLORATORY DATA ANALYSES
 # System count
 ggplot(
   count(games,System),
@@ -231,20 +231,41 @@ for(i in unique(games$System)){
 }
 
 
-## MULTIVARIATE ANALYSES
-# Boxplot, scores by system
-ggplot(
-  games, 
-  aes(
-    x=reorder(System, -Metascore, FUN=median), 
-    y=Metascore
-  )
-) + geom_boxplot() + coord_flip()
+## MULTIVARIATE EXPLORATORY DATA ANALYSES
+metascores <- games$Metascore
+userScores <- games$UserScore
+scores <- list(metascores,userScores)
+categoryCols <- c(3:7,21:26) # Variables for boxplots
 
-ggplot(
-  games, 
-  aes(
-    x=reorder(System, -UserScore, FUN=median), 
-    y=UserScore
-  )
-) + geom_boxplot() + coord_flip()
+# Boxplots, ordered by median scores
+for(i in categoryCols){
+  j <- 1
+  while(j < length(scores)+1){
+    jData <- scores[[j]]
+    yLabel <- ifelse(j==1,'Metascore','User score')
+    category <- assign(
+      names(games[i]),
+      games[[i]]
+    )
+    xData <- reorder(
+      category,
+      jData,
+      median
+    )
+    
+    print(
+      ggplot() + 
+        geom_boxplot(
+          aes(
+            x=xData,
+            y=jData
+          )
+        ) + 
+        xlab(names(games[i])) + 
+        ylab(yLabel) + 
+        coord_flip()
+    )
+    
+    j <- j+1
+  }
+}
