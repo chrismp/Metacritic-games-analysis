@@ -22,16 +22,19 @@ games$UserScoreCategory <- ifelse(games$UserScoreX10 < 50, "Bad",
                                                            "Good"))
 
 games$ReleaseDate <- as.Date(games$ReleaseDate, '%Y-%m-%d') # Convert `ReleaseDate` to dates
-games$ReleaseYear <- format(games$ReleaseDate,'%Y') # Add ReleaseYear column
+games$ReleaseYear <- as.numeric(format(games$ReleaseDate,'%Y')) # Add ReleaseYear column
 games$ReleaseMonth <- as.numeric(format(games$ReleaseDate,'%m')) # Add month column
 games$ReleaseQuarter <- ifelse(games$ReleaseMonth <= 3, 1,
                         ifelse(games$ReleaseMonth <= 6, 2,
                         ifelse(games$ReleaseMonth <= 9, 3,
                                                         4))) # Add quarter column
 games <- mutate(games, ReleaseYearQuarter = paste(ReleaseYear,ReleaseQuarter,sep='Q')) # Combine year and quarter columns into new column
+games$YearCategory <- ifelse(games$ReleaseYear>=2010, '2010 to present',
+                       ifelse(games$ReleaseYear>=2005, '2005-2009',
+                       ifelse(games$ReleaseYear>=2000, '2000-2004',
+                                                       'Before 2000'))) # YearCategory column
 
-
-summary(games) # Min, Max, Median and other summary stats for each variable/column
+summaryStats <- summary(games) # Min, Max, Median and other summary stats for each variable/column
 
 ## SINGLE-VARIABLE EXPLORATORY DATA ANALYSES
 # System count
@@ -48,12 +51,9 @@ ggplot(
   scale_y_continuous(breaks=seq(0,4000,500))
 
 # Publisher count
+pubCount <- count(games,Publisher)
 ggplot(
-  top_n(
-    count(games,Publisher),
-    20, # Show top 20
-    n # Order by `n` variable, aka the count
-  ),
+  pubCount[pubCount$n>=50,],
   aes(
     x = reorder(Publisher, n), 
     y = n
@@ -64,12 +64,10 @@ ggplot(
   coord_flip() 
 
 # Developer count
+devCount <- count(games,Developer)
+devCount <- devCount[devCount$Developer!='',]
 ggplot(
-  top_n(
-    count(games,Developer),
-    20, # Show top 20
-    n # Order by `n` variable, aka the count
-  ),
+  devCount[devCount$n>=50,],
   aes(
     x = reorder(Developer, n), 
     y = n
@@ -80,12 +78,9 @@ ggplot(
   coord_flip() 
 
 # Genre count
+genreCount <- count(games,Genre)
 ggplot(
-  top_n(
-    count(games,Genre),
-    20, # Show top 20
-    n # Order by `n` variable, aka the count
-  ),
+  genreCount[genreCount$n>=50],
   aes(
     x = reorder(Genre, n), 
     y = n
@@ -96,12 +91,9 @@ ggplot(
   coord_flip() 
 
 # ESRB count
+esrbCount <- count(games,ESRB)
 ggplot(
-  top_n(
-    count(games,ESRB),
-    20, # Show top 20
-    n # Order by `n` variable, aka the count
-  ),
+  esrbCount[esrbCount$n>=50],
   aes(
     x = reorder(ESRB, n), 
     y = n
@@ -176,6 +168,21 @@ ggplot(
   geom_bar(stat="identity") + 
   coord_flip() 
 
+# Year categories
+ggplot(
+  count(games,YearCategory),
+  aes(
+    x = factor(
+      YearCategory,
+      levels = c('Before 2000','2000-2004','2005-2009','2010 to present')
+    ), 
+    y = n
+  )
+) + ggtitle("Year categories") +
+  labs(x=NULL, y="Count") + 
+  geom_bar(stat="identity") + 
+  coord_flip() 
+
 # Histogram, Metascore distribution
 ggplot(games, aes(x=Metascore)) + 
   geom_histogram(binwidth=1) +
@@ -235,7 +242,7 @@ for(i in unique(games$System)){
 metascores <- games$Metascore
 userScores <- games$UserScore
 scores <- list(metascores,userScores)
-categoryCols <- c(3:7,23:26) # Variables for boxplots
+categoryCols <- c(3:7,23:27) # Variables for boxplots
 
 # Boxplots, ordered by median scores
 for(i in categoryCols){
@@ -254,11 +261,7 @@ for(i in categoryCols){
       
       jData <- merge(
         games,
-        top_n(
-          countTbl,
-          20, # Show top 20
-          n # Order by `n` variable, aka the count
-        ),
+        countTbl[countTbl$n>=50,],
         by=names(games)[i]
       )
       
