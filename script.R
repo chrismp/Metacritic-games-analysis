@@ -235,18 +235,56 @@ for(i in unique(games$System)){
 metascores <- games$Metascore
 userScores <- games$UserScore
 scores <- list(metascores,userScores)
-categoryCols <- c(3:7,21:26) # Variables for boxplots
+categoryCols <- c(3:7,23:26) # Variables for boxplots
 
 # Boxplots, ordered by median scores
 for(i in categoryCols){
   j <- 1
-  while(j < length(scores)+1){
-    jData <- scores[[j]]
+  while(j <= length(scores)){
+    if(i>=4 & i<=6){
+      if(i==4){
+        countTbl <- count(games,Publisher)
+      } else if(i==5){
+        countTbl <- count(games,Developer)
+        countTbl <- countTbl[is.na(countTbl$Developer)==FALSE,]
+        countTbl <- countTbl[countTbl$Developer!='',]
+      } else if(i==6){
+        countTbl <- count(games,Genre)
+      }
+      
+      jData <- merge(
+        games,
+        top_n(
+          countTbl,
+          20, # Show top 20
+          n # Order by `n` variable, aka the count
+        ),
+        by=names(games)[i]
+      )
+      
+      category <- assign(
+        names(jData[1]),
+        jData[[1]]
+      )
+      
+      xLabel <- names(jData[1])
+      
+      if(j==1){
+        jData <- jData$Metascore
+      } else {
+        jData <- jData$UserScore
+      }
+    } else {
+      jData <- scores[[j]]
+      category <- assign(
+        names(games[i]),
+        games[[i]]
+      )
+      xLabel <- names(games[i])
+    }
+      
     yLabel <- ifelse(j==1,'Metascore','User score')
-    category <- assign(
-      names(games[i]),
-      games[[i]]
-    )
+    
     xData <- reorder(
       category,
       jData,
@@ -261,7 +299,7 @@ for(i in categoryCols){
             y=jData
           )
         ) + 
-        xlab(names(games[i])) + 
+        xlab(xLabel) + 
         ylab(yLabel) + 
         coord_flip()
     )
