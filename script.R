@@ -34,7 +34,8 @@ games$YearCategory <- ifelse(games$ReleaseYear>=2010, '2010 to present',
                        ifelse(games$ReleaseYear>=2000, '2000-2004',
                                                        'Before 2000'))) # YearCategory column
 
-summaryStats <- summary(games) # Min, Max, Median and other summary stats for each variable/column
+summaryStats <- summary(games) # Min, Max, Median and other summary stats for each variable/column\
+
 
 ## SINGLE-VARIABLE EXPLORATORY DATA ANALYSES
 # System count
@@ -239,6 +240,9 @@ for(i in unique(games$System)){
 
 
 ## MULTIVARIATE EXPLORATORY DATA ANALYSES
+give.n <- function(x){
+  return(c(y = mean(x), label = length(x)))
+}
 metascores <- games$Metascore
 userScores <- games$UserScore
 scores <- list(metascores,userScores)
@@ -302,11 +306,73 @@ for(i in categoryCols){
             y=jData
           )
         ) + 
+        stat_summary(fun.data = give.n, geom="text", fun.y = median) +
         xlab(xLabel) + 
         ylab(yLabel) + 
         coord_flip()
     )
     
+    # kruskal.test(Metascore~System,data=games)
+    print(
+      paste(
+        names(games[i]),
+        'by',
+        yLabel,
+        sep=' '
+      )
+    )
+    print(summary(aov(jData~xData)))
+    print('==')
+    print(TukeyHSD(aov(jData~xData)))
+    print('=======')
     j <- j+1
   }
 }
+
+#ggplot(diamonds, aes(cut, price)) + 
+#  geom_boxplot() + 
+#  stat_summary(fun.data = give.n, geom = "text") + 
+#  coord_flip()
+
+
+# LINEAR CORRELATIONS
+ggplotRegression <- function (fit) {
+  print(fit)
+  ggplot(
+    fit$model, 
+    aes_string(
+      x = names(fit$model)[2], 
+      y = names(fit$model)[1]
+    )
+  ) + 
+    geom_point() +
+    stat_smooth(method = "lm", col = "red") +
+    geom_point(position = 'jitter') + 
+    labs(
+      title = paste(
+        "Adj R2 = ",
+        signif(summary(fit)$adj.r.squared, 5),
+        "Intercept =",signif(fit$coef[[1]],5 ),
+        " Slope =",signif(fit$coef[[2]], 5),
+        " P =",signif(summary(fit)$coef[2,4], 5)
+      )
+    )
+}
+cor.test(games$UserScore,games$Metascore)
+pearsonsR <- cor(games$UserScore,games$Metascore)
+r2 <- pearsonsR^2
+ggplotRegression(lm(Metascore~UserScore,data=games))
+
+ggplot(
+  games,
+  aes(
+    Metascore,
+    UserScore,
+    alpha=Users
+  )
+  ) +
+  theme(legend.position='none') + 
+  geom_point(position = 'jitter') + 
+  geom_smooth(method=lm) 
+  #scale_x_continuous( breaks = seq(0,100,by=5) ) +
+  #scale_y_continuous( breaks = seq(0,10,by=0.5) )
