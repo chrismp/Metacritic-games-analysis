@@ -322,8 +322,8 @@ for(i in categoryCols){
       )
     )
     print(summary(aov(jData~xData)))
-    print('==')
-    print(TukeyHSD(aov(jData~xData)))
+    #print('==')
+    #print(TukeyHSD(aov(jData~xData)))
     print('=======')
     j <- j+1
   }
@@ -336,43 +336,52 @@ for(i in categoryCols){
 
 
 # LINEAR CORRELATIONS
-ggplotRegression <- function (fit) {
-  print(fit)
-  ggplot(
-    fit$model, 
-    aes_string(
-      x = names(fit$model)[2], 
-      y = names(fit$model)[1]
-    )
-  ) + 
-    geom_point() +
-    stat_smooth(method = "lm", col = "red") +
-    geom_point(position = 'jitter') + 
-    labs(
-      title = paste(
-        "Adj R2 = ",
-        signif(summary(fit)$adj.r.squared, 5),
-        "Intercept =",signif(fit$coef[[1]],5 ),
-        " Slope =",signif(fit$coef[[2]], 5),
-        " P =",signif(summary(fit)$coef[2,4], 5)
-      )
-    )
-}
-cor.test(games$UserScore,games$Metascore)
-pearsonsR <- cor(games$UserScore,games$Metascore)
-r2 <- pearsonsR^2
-ggplotRegression(lm(Metascore~UserScore,data=games))
-
+lmStats <- lm(UserScore~Metascore,data=games)
+lmStatsSummary <- summary(lmStats)
 ggplot(
   games,
   aes(
     Metascore,
     UserScore,
-    alpha=Users
+    alpha = Users
   )
   ) +
   theme(legend.position='none') + 
   geom_point(position = 'jitter') + 
-  geom_smooth(method=lm) 
-  #scale_x_continuous( breaks = seq(0,100,by=5) ) +
-  #scale_y_continuous( breaks = seq(0,10,by=0.5) )
+  geom_smooth(method=lm) +
+  labs(
+    title = paste(
+      "Adj R2 = ",signif(lmStatsSummary$adj.r.squared, 2),
+      "Intercept =",signif(lmStats$coef[[1]],2 ),
+      " Slope =",signif(lmStats$coef[[2]], 2),
+      " P =",signif(lmStatsSummary$coef[2,4], 2)
+    )
+  )
+
+
+
+
+
+
+# Correlation between Release Year and User Score. Weak
+lmStats <- lm(UserScore~ReleaseYear,data=games)
+lmStatsSummary <- summary(lmStats)
+ggplot(
+  games,
+  aes(
+    ReleaseYear,
+    UserScore,
+    alpha=Users
+  )
+) +
+  theme(legend.position='none') + 
+  geom_point(position = 'jitter') + 
+  geom_smooth(method=lm) +
+  labs(
+    title = paste(
+      "Adj R2 = ",signif(lmStatsSummary$adj.r.squared, 2),
+      "Intercept =",signif(lmStats$coef[[1]],2 ),
+      " Slope =",signif(lmStats$coef[[2]], 2),
+      " P =",signif(lmStatsSummary$coef[2,4], 2)
+    )
+  )
