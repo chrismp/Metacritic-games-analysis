@@ -1,9 +1,11 @@
 install.packages('Rcpp') # Makes installation of 'dyplr' work
 install.packages('dplyr')
+install.packages('reshape2')
 install.packages('ggplot2')
 
 library(Rcpp)
 library(dplyr)
+library(reshape2)
 library(ggplot2)
 
 gamesRaw <- read.csv('CSVs/gamedata.csv', header = TRUE, na.strings=c("NA","NULL"))
@@ -14,25 +16,25 @@ games <- games[is.na(games$UserScore)==FALSE,] # Exclude where user score is NUL
 games <- mutate(games, UserScoreX10 = UserScore*10) # Add column where user score multiplied by 10, since user score of 7.5 is like Metascore 75.
 
 games$MetascoreCategory <- ifelse(games$Metascore < 50, "Bad",
-                           ifelse(games$Metascore < 75, "Mixed",
-                                                        "Good"))
+                                  ifelse(games$Metascore < 75, "Mixed",
+                                         "Good"))
 
 games$UserScoreCategory <- ifelse(games$UserScoreX10 < 50, "Bad",
-                           ifelse(games$UserScoreX10 < 75, "Mixed",
-                                                           "Good"))
+                                  ifelse(games$UserScoreX10 < 75, "Mixed",
+                                         "Good"))
 
 games$ReleaseDate <- as.Date(games$ReleaseDate, '%Y-%m-%d') # Convert `ReleaseDate` to dates
 games$ReleaseYear <- as.numeric(format(games$ReleaseDate,'%Y')) # Add ReleaseYear column
 games$ReleaseMonth <- as.numeric(format(games$ReleaseDate,'%m')) # Add month column
 games$ReleaseQuarter <- ifelse(games$ReleaseMonth <= 3, 1,
-                        ifelse(games$ReleaseMonth <= 6, 2,
-                        ifelse(games$ReleaseMonth <= 9, 3,
-                                                        4))) # Add quarter column
+                               ifelse(games$ReleaseMonth <= 6, 2,
+                                      ifelse(games$ReleaseMonth <= 9, 3,
+                                             4))) # Add quarter column
 games <- mutate(games, ReleaseYearQuarter = paste(ReleaseYear,ReleaseQuarter,sep='Q')) # Combine year and quarter columns into new column
 games$YearCategory <- ifelse(games$ReleaseYear>=2010, '2010 to present',
-                       ifelse(games$ReleaseYear>=2005, '2005-2009',
-                       ifelse(games$ReleaseYear>=2000, '2000-2004',
-                                                       'Before 2000'))) # YearCategory column
+                             ifelse(games$ReleaseYear>=2005, '2005-2009',
+                                    ifelse(games$ReleaseYear>=2000, '2000-2004',
+                                           'Before 2000'))) # YearCategory column
 
 summaryStats <- summary(games) # Min, Max, Median and other summary stats for each variable/column\
 
@@ -289,7 +291,7 @@ for(i in categoryCols){
       )
       xLabel <- names(games[i])
     }
-      
+    
     yLabel <- ifelse(j==1,'Metascore','User score')
     
     xData <- reorder(
@@ -338,6 +340,13 @@ for(i in categoryCols){
 # LINEAR CORRELATIONS
 lmStats <- lm(UserScore~Metascore,data=games)
 lmStatsSummary <- summary(lmStats)
+print(lmStatsSummary)
+for(i in c(3,7,23:27)){
+  print(names(games[i]))
+  print(summary( lm(games$UserScore ~ games[[i]]) ))
+  print(summary( lm(games$UserScore ~ games$Metascore + games[[i]]) ))
+}
+
 ggplot(
   games,
   aes(
@@ -345,7 +354,7 @@ ggplot(
     UserScore,
     alpha = Users
   )
-  ) +
+) +
   theme(legend.position='none') + 
   geom_point(position = 'jitter') + 
   geom_smooth(method=lm) +
@@ -357,11 +366,6 @@ ggplot(
       " P =",signif(lmStatsSummary$coef[2,4], 2)
     )
   )
-
-
-
-
-
 
 # Correlation between Release Year and User Score. Weak
 lmStats <- lm(UserScore~ReleaseYear,data=games)
@@ -385,3 +389,23 @@ ggplot(
       " P =",signif(lmStatsSummary$coef[2,4], 2)
     )
   )
+
+multiLM <- lm(UserScore ~ Metascore+ReleaseYear, data=games)
+summary(multiLM)
+
+
+# CHARTS
+games.chart1Data <- melt(
+  games, 
+  id.vars=c('Id','System'), 
+  measure.vars=c('Metascore','UserScoreX10')
+)
+ggplot(games.chart1Data) + 
+  geom_boxplot(
+    aes(
+      x=reorder(System,value,FUN=median),
+      y=value,
+      fill=variable
+    )
+  ) +
+  coord_flip()
