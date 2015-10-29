@@ -395,15 +395,155 @@ summary(multiLM)
 
 
 # CHARTS
+# Make boxplot comparing scores by users and critics for each System
 games.chart1Data <- melt(
   games, 
   id.vars=c('Id','System'), 
   measure.vars=c('Metascore','UserScoreX10')
 )
+
+for(i in unique(games.chart1Data$System)){
+  medianMetascore <- median(
+    games.chart1Data[
+      games.chart1Data$variable=='Metascore' &
+        games.chart1Data$System==i,
+      ]$value
+  )
+  
+  medianUserScore <- median(
+    games.chart1Data[
+      games.chart1Data$variable=='UserScoreX10' &
+        games.chart1Data$System==i,
+      ]$value
+  )
+  
+  MetascoreMinusUserScore <- medianMetascore-medianUserScore
+
+  games.chart1Data$SystemMedianScoreDifference <-ifelse(
+    games.chart1Data$System==i,
+    MetascoreMinusUserScore,
+    games.chart1Data$SystemMedianScoreDifference
+  )
+}
+
 ggplot(games.chart1Data) + 
   geom_boxplot(
     aes(
-      x=reorder(System,value,FUN=median),
+      x=reorder(System,SystemMedianScoreDifference),
+      y=value,
+      fill=variable
+    )
+  ) +
+  coord_flip()
+
+# Make boxplot comparing scores by users and critics for each YearCategory
+games.chart2Data <- melt(
+  games, 
+  id.vars=c('Id','YearCategory'), 
+  measure.vars=c('Metascore','UserScoreX10')
+)
+
+ggplot(games.chart2Data) + 
+  geom_boxplot(
+    aes(
+      x=factor(
+        YearCategory,
+        levels = c('Before 2000','2000-2004','2005-2009','2010 to present')
+      ),
+      y=value,
+      fill=variable
+    )
+  ) +
+  coord_flip()
+
+# Make boxplot comparing scores by users and critic for top publishers
+topPubs <- pubCount[pubCount$n>=50,]
+games.chart3Data <- melt(
+  merge(
+    games,
+    topPubs,
+    by=names(games)[4]
+  ), 
+  id.vars=c('Id','Publisher'), 
+  measure.vars=c('Metascore','UserScoreX10')
+)
+
+games.chart3Data$PublisherMedianScoreDifference <- NA
+for(i in unique(games.chart4Data$Publisher)){
+  medianMetascore <- median(
+    games.chart3Data[
+      games.chart3Data$variable=='Metascore' &
+      games.chart3Data$Publisher==i,
+    ]$value
+  )
+  
+  medianUserScore <- median(
+    games.chart3Data[
+      games.chart3Data$variable=='UserScoreX10' &
+      games.chart3Data$Publisher==i,
+    ]$value
+  )
+  
+  MetascoreMinusUserScore <- medianMetascore-medianUserScore
+  
+  games.chart3Data$PublisherMedianScoreDifference <-ifelse(
+    games.chart3Data$Publisher==i,
+    MetascoreMinusUserScore,
+    games.chart3Data$PublisherMedianScoreDifference
+  )
+}
+
+ggplot(games.chart3Data) + 
+  geom_boxplot(
+    aes(
+      x=reorder(Publisher,PublisherMedianScoreDifference),
+      y=value,
+      fill=variable
+    )
+  ) +
+  coord_flip()
+
+# Make boxplot comparing scores by users and critic for top devs
+topDevs <- devCount[devCount$n>=50,]
+games.chart4Data <- melt(
+  merge(
+    games,
+    topDevs,
+    by=names(games)[5]
+  ), 
+  id.vars=c('Id','Developer'), 
+  measure.vars=c('Metascore','UserScoreX10')
+)
+
+games.chart4Data$DeveloperMedianScoreDifference <- NA
+for(i in unique(games.chart4Data$Developer)){
+  medianMetascore <- median(
+    games.chart4Data[
+      games.chart4Data$variable=='Metascore' &
+        games.chart4Data$Developer==i,
+      ]$value
+  )
+  
+  medianUserScore <- median(
+    games.chart4Data[
+      games.chart4Data$variable=='UserScoreX10' &
+        games.chart4Data$Developer==i,
+      ]$value
+  )
+  
+  MetascoreMinusUserScore <- medianMetascore-medianUserScore
+  
+  games.chart4Data$DeveloperMedianScoreDifference <-ifelse(
+    games.chart4Data$Developer==i,
+    MetascoreMinusUserScore,
+    games.chart4Data$DeveloperMedianScoreDifference
+  )
+}
+
+ggplot(games.chart4Data) + 
+  geom_boxplot(
+    aes(
+      x=reorder(Developer,DeveloperMedianScoreDifference),
       y=value,
       fill=variable
     )
