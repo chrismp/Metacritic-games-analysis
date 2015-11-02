@@ -549,3 +549,48 @@ ggplot(games.chart4Data) +
     )
   ) +
   coord_flip()
+
+
+## OVERRATED, UNDERRATED, CONTROVERSIAL GAMES
+games <- mutate(games, CriticUserDiff = Metascore-UserScoreX10)
+games <- mutate(
+  games, 
+  posNegDiffCritics = abs(CriticsPositive-CriticsNegative)
+)
+games <- mutate(
+  games,
+  mixedPortionCritics = CriticMixed/Critics
+)
+games <- mutate(
+  games, 
+  posNegDiffUsers = abs(UsersPositive-UsersNegative)
+)
+games <- mutate(
+  games,
+  mixedPortionUsers = UsersMixed/Users
+)
+
+games.overrated <- games[order(games$CriticUserDiff, decreasing = TRUE),]
+games.underrated <- games[order(games$CriticUserDiff, decreasing = FALSE),]
+
+games.controversialUsers <- games[
+  games$Users >= 10,
+]
+games.controversialUsers <- games.controversialUsers[
+  order(
+    games.controversialUsers$posNegDiffUsers,
+    games.controversialUsers$mixedPortionUsers
+  ),
+]
+
+games.controversialCritics <- games[
+  games$Critics > 1 &
+  games$Users >= 10,
+]
+games.controversialCritics <- games.controversialCritics[
+  order(
+    games.controversialCritics$posNegDiffCritics,
+    games.controversialCritics$mixedPortionCritics
+  ),
+]
+
