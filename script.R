@@ -594,3 +594,6 @@ games.controversialCritics <- games.controversialCritics[
   ),
 ]
 
+
+## CRITICS DATA ANALYSES
+critics <- read.csv('CSVs/gamecriticsdata.csv')
