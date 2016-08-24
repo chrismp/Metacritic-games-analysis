@@ -77,3 +77,34 @@ df.Games$MetascoreCategory <- ifelse(df.Games$Metascore < 50, "Bad",
 df.Games$UserScoreCategory <- ifelse(df.Games$UserScoreX10 < 50, "Bad",
 																	ifelse(df.Games$UserScoreX10 < 75, "Mixed",
 																				 "Good"))
+misc.ReleaseDateFormat <- "%b %d, %Y"
+misc.ReleaseYearFormat <- "%Y"
+df.Games$ReleaseDateFormatted <- as.Date(
+	x = df.Games$ReleaseDate,
+	misc.ReleaseDateFormat
+)
+df.Games$ReleaseYear <- as.numeric(
+	x = format(
+		x = df.Games$ReleaseDateFormatted,
+		misc.ReleaseYearFormat
+	)
+)
+
+
+# ONE-DIMENSIONAL EXPLORATORY DATA ANALYSIS
+eda1.Summary <- summary(df.Games)
+eda1.topMetascoreGames <- df.Games %>% arrange(desc(Metascore))
+eda1.bottomMetascoreGames <- df.Games %>% arrange(Metascore)
+eda1.topUserGames <- df.Games %>% arrange(desc(UserScore))
+eda1.bottomUserGames <- df.Games %>% arrange(UserScore)
+
+# analysis needed
+# - Scores by release year
+# - scores by genre
+# - scores by dev
+# - scores by publisher
+# - scores by game system, maybe exclude PC
+# - Correlation between userscores and Metascores
+# - How each critic's Metascore lines up with user scores
+# - "Overrated" games
+# - "Underrated" games
