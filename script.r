@@ -91,20 +91,165 @@ df.Games$ReleaseYear <- as.numeric(
 )
 
 
-# ONE-DIMENSIONAL EXPLORATORY DATA ANALYSIS
-eda1.Summary <- summary(df.Games)
-eda1.topMetascoreGames <- df.Games %>% arrange(desc(Metascore))
-eda1.bottomMetascoreGames <- df.Games %>% arrange(Metascore)
-eda1.topUserGames <- df.Games %>% arrange(desc(UserScore))
-eda1.bottomUserGames <- df.Games %>% arrange(UserScore)
+# EXPLORATORY DATA ANALYSIS
+eda.Summary <- summary(df.Games)
+eda.metascoreCategoryCount <- filter( count(df.Games,MetascoreCategory), is.na(MetascoreCategory)==FALSE)
+eda.topMetascoreGames <- df.Games %>% arrange(desc(Metascore))
+eda.bottomMetascoreGames <- df.Games %>% arrange(Metascore)
+eda.topUserGames <- df.Games %>% arrange(desc(UserScore))
+eda.bottomUserGames <- df.Games %>% arrange(UserScore)
+eda.ReleaseYears <- summarise(
+  group_by(df.Games, ReleaseYear),
+  n = n(),
+  CountCriticScores = sum(CriticScores),
+  CountUserScores = sum(UserScores),
+  MeanMetascore = mean(Metascore),
+  MeanUserScoreX10 = mean(UserScoreX10),
+  MedianMetascore = median(Metascore),
+  MedianUserScoreX10 = median(UserScoreX10),
+  MeanCriticUserDiff = mean(CriticUserDiff),
+  MedianCriticUserDiff = median(CriticUserDiff)
+)
+eda.MetascoreByYear <- summarise(
+  group_by(df.Games, ReleaseYear, MetascoreCategory),
+  n = n()
+)
+eda.UserScoreByYear <- summarise(
+  group_by(df.Games, ReleaseYear, UserScoreCategory),
+  n = n()
+)
+eda.Systems <- summarise(
+  group_by(df.Games, SystemLabel),
+  n = n(),
+  CountCriticScores = sum(CriticScores),
+  CountUserScores = sum(UserScores),
+  MeanMetascore = mean(Metascore),
+  MeanUserScoreX10 = mean(UserScoreX10),
+  MedianMetascore = median(Metascore),
+  MedianUserScoreX10 = median(UserScoreX10),
+  MeanCriticUserDiff = mean(CriticUserDiff),
+  MedianCriticUserDiff = median(CriticUserDiff)
+)
+eda.Devs <- summarise(
+  group_by(df.Games, Developer),
+  n = n(),
+  CountCriticScores = sum(CriticScores),
+  CountUserScores = sum(UserScores),
+  MeanMetascore = mean(Metascore),
+  MeanUserScoreX10 = mean(UserScoreX10),
+  MedianMetascore = median(Metascore),
+  MedianUserScoreX10 = median(UserScoreX10),
+  MeanCriticUserDiff = mean(CriticUserDiff),
+  MedianCriticUserDiff = median(CriticUserDiff)
+)
+
+
+# ANALYSIS WITH GENRES
+df.Games_Genres <- merge(
+  x = df.Games,
+  y = raw.Genres,
+  by = "GameURL"
+)
+eda.Genres <- summarise(
+  group_by(df.Games_Genres, Genre),
+  n = n(),
+  CountCriticScores = sum(CriticScores),
+  CountUserScores = sum(UserScores),
+  MeanMetascore = mean(Metascore),
+  MeanUserScoreX10 = mean(UserScoreX10),
+  MedianMetascore = median(Metascore),
+  MedianUserScoreX10 = median(UserScoreX10),
+  MeanCriticUserDiff = mean(CriticUserDiff),
+  MedianCriticUserDiff = median(CriticUserDiff)
+)
+
+
+# ANALYSIS WITH PUBLISHERS
+df.Games_Publishers <- merge(
+  x = df.Games,
+  y = raw.Publishers,
+  by = "GameURL"
+)
+eda.Publishers <- summarise(
+  group_by(df.Games_Publishers, Publisher),
+  n = n(),
+  CountCriticScores = sum(CriticScores),
+  CountUserScores = sum(UserScores),
+  MeanMetascore = mean(Metascore),
+  MeanUserScoreX10 = mean(UserScoreX10),
+  MedianMetascore = median(Metascore),
+  MedianUserScoreX10 = median(UserScoreX10),
+  MeanCriticUserDiff = mean(CriticUserDiff),
+  MedianCriticUserDiff = median(CriticUserDiff)
+)
+
+
+# ANALYSIS WITH CRITICS
+func.EDACritics <- function(df){
+  eda.criticsSummary <- summarise(
+    .data = group_by(df, Critic),
+    Count = n(),
+    Pearson_CriticScore_Metascore = cor(x = Score, y = Metascore, use = "p", method = "pearson"),
+    Pearson_CriticScore_UserScore = cor(x = Score, y = UserScore, use = "p", method = "pearson"),
+    AverageCriticScore = mean(Score, na.rm = TRUE), # Average score given by this critic
+    AverageMetascore = mean(Metascore, na.rm = TRUE), # Average Metascore for albums rated by this critic
+    AverageCriticScoreMetascoreDifference = mean(Score) - mean(Metascore),
+    AverageUserScoreX10 = mean(UserScore*10, na.rm = TRUE),
+    AverageCriticScoreUserScoreDifference = mean(Score, na.rm = TRUE) - mean(UserScore*10, na.rm = TRUE),
+    MedianCriticScore = median(Score, na.rm = TRUE),
+    MedianMetascore = median(Metascore, na.rm = TRUE),
+    MedianCriticScoreMetascoreDifference = median(Score, na.rm = TRUE) - median(Metascore, na.rm = TRUE),
+    MedianUserScoreX10 = median(UserScore*10, na.rm = TRUE),
+    MedianCriticScoreUserScoreDifference = median(Score, na.rm = TRUE) - median(UserScore*10, na.rm = TRUE)
+  )
+}
+df.Critics <- raw.Critics
+df.Critics$ReviewDateFormatted <- as.Date(
+  x = df.Critics$Date,
+  misc.ReleaseDateFormat
+)
+df.Games_Critics <- merge(
+  x = df.Games,
+  y = df.Critics,
+  by = "GameURL"
+)
+eda.Critics <- func.EDACritics(df.Games_Critics)
+eda.Critics_1990s <- func.EDACritics(
+  filter(
+    .data = df.Games_Critics,
+    ReleaseYear < 2000
+  )
+)
+eda.Critics_2000_2004 <- func.EDACritics(
+  filter(
+    .data = df.Games_Critics,
+    ReleaseYear >= 2000,
+    ReleaseYear <= 2004
+  )
+)
+eda.Critics_2005_2009 <- func.EDACritics(
+  filter(
+    .data = df.Games_Critics,
+    ReleaseYear >= 2005,
+    ReleaseYear <= 2009
+  )
+)
+eda.Critics_2010s <- func.EDACritics(
+  filter(
+    .data = df.Games_Critics,
+    ReleaseYear >= 2010
+  )
+)
+
+
+## Rock Paper Shotgun has no Metascores.
+# dummy <- filter(
+#   .data = df.Games_Critics,
+#   Critic=="Rock, Paper, Shotgun"
+# )
+dummy <- NULL
 
 # analysis needed
-# - Scores by release year
-# - scores by genre
-# - scores by dev
-# - scores by publisher
-# - scores by game system, maybe exclude PC
 # - Correlation between userscores and Metascores
-# - How each critic's Metascore lines up with user scores
 # - "Overrated" games
 # - "Underrated" games
