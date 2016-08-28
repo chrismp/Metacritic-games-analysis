@@ -1,8 +1,12 @@
 # install.packages('Rcpp') # Makes installation of 'dyplr' work
 # install.packages('dplyr')
+# install.packages("reshape2")
+# install.packages("plotly")
 
 library(Rcpp)
 library(dplyr)
+library(reshape2)
+library(plotly)
 
 ## RAW DATA CSV FILE NAMES
 rawData.Directory <- "Raw-data"
@@ -242,6 +246,19 @@ eda.Critics_2010s <- func.EDACritics(
 )
 
 
+## TURN DATAFRAMES INTO SOMETHING PLOTLY/D3 CAN USE
+chartData.MetascoreByYear <- dcast(
+  data = eda.MetascoreByYear,
+  formula = ReleaseYear ~ MetascoreCategory
+)
+chartData.UserScoreByYear <- dcast(
+  data = eda.UserScoreByYear,
+  formula = ReleaseYear ~ UserScoreCategory
+)
+
+
+
+
 ## Rock Paper Shotgun has no Metascores.
 # dummy <- filter(
 #   .data = df.Games_Critics,
@@ -253,3 +270,19 @@ dummy <- NULL
 # - Correlation between userscores and Metascores
 # - "Overrated" games
 # - "Underrated" games
+
+
+
+
+# library(plotly)
+# library(htmlwidgets)
+# set.seed(100)
+# d <- diamonds[sample(nrow(diamonds), 1000), ]
+# p <- plot_ly(d, x = carat, y = price, text = paste("Clarity: ", clarity),
+#         mode = "markers", color = carat, size = carat)
+# saveWidget(
+#   widget = as.widget(
+#     x = p
+#   ),
+#   file = "plot.html"
+# )
