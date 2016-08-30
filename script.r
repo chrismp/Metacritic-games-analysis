@@ -7,6 +7,7 @@ library(Rcpp)
 library(dplyr)
 library(reshape2)
 library(plotly)
+library(ggplot2)
 
 ## RAW DATA CSV FILE NAMES
 rawData.Directory <- "Raw-data"
@@ -112,7 +113,9 @@ eda.ReleaseYears <- summarise(
   MedianMetascore = median(Metascore),
   MedianUserScoreX10 = median(UserScoreX10),
   MeanCriticUserDiff = mean(CriticUserDiff),
-  MedianCriticUserDiff = median(CriticUserDiff)
+  MedianCriticUserDiff = median(CriticUserDiff),
+  PearsonR_Metascore_UserScore = cor(x = Metascore, y = UserScore, use = "p", method = "pearson"),
+  R2_Metascore_UserScore = cor(x = Metascore, y = UserScore, use = "p", method = "pearson")^2
 )
 eda.MetascoreByYear <- summarise(
   group_by(df.Games, ReleaseYear, MetascoreCategory),
@@ -193,8 +196,10 @@ func.EDACritics <- function(df){
   eda.criticsSummary <- summarise(
     .data = group_by(df, Critic),
     Count = n(),
-    Pearson_CriticScore_Metascore = cor(x = Score, y = Metascore, use = "p", method = "pearson"),
-    Pearson_CriticScore_UserScore = cor(x = Score, y = UserScore, use = "p", method = "pearson"),
+    PearsonR_CriticScore_Metascore = cor(x = Score, y = Metascore, use = "p", method = "pearson"),
+    R2_CriticScore_Metascore = cor(x = Score, y = Metascore, use = "p", method = "pearson")^2,
+    PearsonR_CriticScore_UserScore = cor(x = Score, y = UserScore, use = "p", method = "pearson"),
+    R2_CriticScore_UserScore = cor(x = Score, y = UserScore, use = "p", method = "pearson")^2,
     AverageCriticScore = mean(Score, na.rm = TRUE), # Average score given by this critic
     AverageMetascore = mean(Metascore, na.rm = TRUE), # Average Metascore for albums rated by this critic
     AverageCriticScoreMetascoreDifference = mean(Score) - mean(Metascore),
@@ -257,13 +262,58 @@ chartData.UserScoreByYear <- dcast(
 )
 
 
-
+## SCATTERPLOT FOR CERTAIN CRITICS, SEE WHAT CORRELATIONS LOOK LIKE
+lm_eqn <- function(m){
+  eq <- substitute(italic(y) == a + b %.% italic(x)*","~~italic(r)^2~"="~r2, 
+                   list(a = format(coef(m)[1], digits = 2), 
+                        b = format(coef(m)[2], digits = 2), 
+                        r2 = format(summary(m)$r.squared, digits = 3)))
+  as.character(as.expression(eq));                 
+}
+misc.Critic <- "Nintendo Life"
+df.CriticFilter <- filter(
+  .data = df.Games_Critics,
+  Critic == misc.Critic
+)
+chart.CriticUser <- ggplot(
+  data = df.CriticFilter,
+  mapping = aes(
+    x = Score,
+    y = UserScore
+  )
+)
+chart.CriticUser + 
+  geom_point() +
+  ggtitle(misc.Critic) +
+  labs(
+    x = "Critic score",
+    y = "User score"
+  ) +
+  geom_smooth(
+    method = "lm",
+    colour = "red"
+  ) +
+  geom_text(
+    x = 25,
+    y = 9,
+    parse = TRUE,
+    label = lm_eqn(
+      lm(
+        formula = Score ~ UserScore,
+        data = filter(
+          .data = df.CriticFilter,
+          Critic == misc.Critic
+        )
+      )
+    )
+  )
 
 ## Rock Paper Shotgun has no Metascores.
 # dummy <- filter(
 #   .data = df.Games_Critics,
 #   Critic=="Rock, Paper, Shotgun"
 # )
+
 dummy <- NULL
 
 
