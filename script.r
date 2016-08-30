@@ -266,12 +266,6 @@ chartData.UserScoreByYear <- dcast(
 # )
 dummy <- NULL
 
-# analysis needed
-# - Correlation between userscores and Metascores
-# - "Overrated" games
-# - "Underrated" games
-
-
 
 
 # library(plotly)
