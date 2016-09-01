@@ -9,7 +9,7 @@ Questions to answer
 - What's the good:mixed:bad ratio for players and critics over the years? DONE
 - Which critics' Metacores are most highly-correlated with player scores? Least? DONE
 - What's the correlation between Metascores and user scores? DONE
-- How has correlation between players/critic scores changed over years?
+- How has correlation between players/critic scores changed over years? DONE
 - How does critic/player score differ by developer? DONE
 -- Publisher? DONE
 -- Genre? DONE
@@ -17,6 +17,6 @@ Questions to answer
 -- Console? DONE
 - Does a critic's score correlate more with players' score if review published after game release?
 - Define "overrated" as (critic score - user score >= 10), "underrated" as (critic score - user score <= -10); Are there more overrated/underrated games than in the past?
-- Top X list of most underrated games
-- Top X list of most overrated games
+- Top underrated games DONE
+- Top overrated games DONE
 - Correlation between game popularity and disparity of user/metascore?
