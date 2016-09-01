@@ -192,6 +192,12 @@ eda.Publishers <- summarise(
 
 
 # ANALYSIS WITH CRITICS
+misc.R2_MetascoreUserScore <- cor(
+	x = df.Games$Metascore,
+	y = df.Games$UserScore,
+	use = 'p',
+	method = "pearson"
+)^2
 func.EDACritics <- function(df){
   eda.criticsSummary <- summarise(
     .data = group_by(df, Critic),
@@ -263,7 +269,7 @@ chartData.UserScoreByYear <- dcast(
 
 
 ## SCATTERPLOT FOR CERTAIN CRITICS, SEE WHAT CORRELATIONS LOOK LIKE
-lm_eqn <- function(m){
+lm_eqn <- function(m){ # This function makes string of regression line equation, also shows r2 value
   eq <- substitute(italic(y) == a + b %.% italic(x)*","~~italic(r)^2~"="~r2, 
                    list(a = format(coef(m)[1], digits = 2), 
                         b = format(coef(m)[2], digits = 2), 

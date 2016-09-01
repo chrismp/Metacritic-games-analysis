@@ -7,8 +7,8 @@ analysis needed
 Questions to answer
 - How do median/average scores differ between players and critics thru the years? DONE
 - What's the good:mixed:bad ratio for players and critics over the years? DONE
-- Which critics' Metacores are most highly-correlated with player scores? Least?
-- What's the correlation between Metascores and user scores?
+- Which critics' Metacores are most highly-correlated with player scores? Least? DONE
+- What's the correlation between Metascores and user scores? DONE
 - How has correlation between players/critic scores changed over years?
 - How does critic/player score differ by developer? DONE
 -- Publisher? DONE
