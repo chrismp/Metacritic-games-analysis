@@ -19,4 +19,4 @@ Questions to answer
 - Define "overrated" as (critic score - user score >= 10), "underrated" as (critic score - user score <= -10); Are there more overrated/underrated games than in the past?
 - Top underrated games DONE
 - Top overrated games DONE
-- Correlation between game popularity and disparity of user/metascore?
+- Correlation between game popularity and disparity of user/metascore? DONE

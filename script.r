@@ -94,10 +94,17 @@ df.Games$ReleaseYear <- as.numeric(
 		misc.ReleaseYearFormat
 	)
 )
+df.Games$UserScoreCountCategory <- ifelse(df.Games$UserScores < 10, "Less than 10",
+                                          ifelse(df.Games$UserScores < 25, "10-24",
+                                                 ifelse(df.Games$UserScores < 50, "25-49",
+                                                        ifelse(df.Games$UserScores < 100, "50-99",
+                                                               ifelse(df.Games$UserScores < 500, "100-499",
+                                                                      "500+")))))
 
 
 # EXPLORATORY DATA ANALYSIS
 eda.Summary <- summary(df.Games)
+eda.PercentilesUserScores <- quantile(x = df.Games$UserScores, probs = c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99))
 eda.metascoreCategoryCount <- filter( count(df.Games,MetascoreCategory), is.na(MetascoreCategory)==FALSE)
 eda.topMetascoreGames <- df.Games %>% arrange(desc(Metascore))
 eda.bottomMetascoreGames <- df.Games %>% arrange(Metascore)
@@ -114,8 +121,8 @@ eda.ReleaseYears <- summarise(
   MedianUserScoreX10 = median(UserScoreX10),
   MeanCriticUserDiff = mean(CriticUserDiff),
   MedianCriticUserDiff = median(CriticUserDiff),
-  PearsonR_Metascore_UserScore = cor(x = Metascore, y = UserScore, use = "p", method = "pearson"),
-  R2_Metascore_UserScore = cor(x = Metascore, y = UserScore, use = "p", method = "pearson")^2
+  PearsonR_Metascore_UserScore = round(  x = cor(x = Metascore, y = UserScore, use = "p", method = "pearson"), digits = 2  ),
+  R2_Metascore_UserScore = round(  x = cor(x = Metascore, y = UserScore, use = "p", method = "pearson"), digits = 2  )^2
 )
 eda.MetascoreByYear <- summarise(
   group_by(df.Games, ReleaseYear, MetascoreCategory),
@@ -128,6 +135,8 @@ eda.UserScoreByYear <- summarise(
 eda.Systems <- summarise(
   group_by(df.Games, SystemLabel),
   n = n(),
+  PearsonR_Metascore_UserScore = round(  x = cor(x = Metascore, y = UserScore, use = "p", method = "pearson"), digits = 2  ),
+  R2_Metascore_UserScore = round(  x = cor(x = Metascore, y = UserScore, use = "p", method = "pearson"), digits = 2  )^2,
   CountCriticScores = sum(CriticScores),
   CountUserScores = sum(UserScores),
   MeanMetascore = mean(Metascore),
@@ -140,6 +149,22 @@ eda.Systems <- summarise(
 eda.Devs <- summarise(
   group_by(df.Games, Developer),
   n = n(),
+  PearsonR_Metascore_UserScore = round(  x = cor(x = Metascore, y = UserScore, use = "p", method = "pearson"), digits = 2  ),
+  R2_Metascore_UserScore = round(  x = cor(x = Metascore, y = UserScore, use = "p", method = "pearson"), digits = 2  )^2,
+  CountCriticScores = sum(CriticScores),
+  CountUserScores = sum(UserScores),
+  MeanMetascore = mean(Metascore),
+  MeanUserScoreX10 = mean(UserScoreX10),
+  MedianMetascore = median(Metascore),
+  MedianUserScoreX10 = median(UserScoreX10),
+  MeanCriticUserDiff = mean(CriticUserDiff),
+  MedianCriticUserDiff = median(CriticUserDiff)
+)
+eda.UserScoreCount <- summarise(
+  group_by(df.Games, UserScoreCountCategory),
+  n = n(),
+  PearsonR_Metascore_UserScore = round(  x = cor(x = Metascore, y = UserScore, use = "p", method = "pearson"), digits = 2  ),
+  R2_Metascore_UserScore = round(  x = cor(x = Metascore, y = UserScore, use = "p", method = "pearson"), digits = 2  )^2,
   CountCriticScores = sum(CriticScores),
   CountUserScores = sum(UserScores),
   MeanMetascore = mean(Metascore),
@@ -160,6 +185,8 @@ df.Games_Genres <- merge(
 eda.Genres <- summarise(
   group_by(df.Games_Genres, Genre),
   n = n(),
+  PearsonR_Metascore_UserScore = round(  x = cor(x = Metascore, y = UserScore, use = "p", method = "pearson"), digits = 2  ),
+  R2_Metascore_UserScore = round(  x = cor(x = Metascore, y = UserScore, use = "p", method = "pearson"), digits = 2  )^2,
   CountCriticScores = sum(CriticScores),
   CountUserScores = sum(UserScores),
   MeanMetascore = mean(Metascore),
@@ -180,6 +207,8 @@ df.Games_Publishers <- merge(
 eda.Publishers <- summarise(
   group_by(df.Games_Publishers, Publisher),
   n = n(),
+  PearsonR_Metascore_UserScore = round(  x = cor(x = Metascore, y = UserScore, use = "p", method = "pearson"), digits = 2  ),
+  R2_Metascore_UserScore = round(  x = cor(x = Metascore, y = UserScore, use = "p", method = "pearson"), digits = 2  )^2,
   CountCriticScores = sum(CriticScores),
   CountUserScores = sum(UserScores),
   MeanMetascore = mean(Metascore),
@@ -314,11 +343,6 @@ chart.CriticUser +
     )
   )
 
-## Rock Paper Shotgun has no Metascores.
-# dummy <- filter(
-#   .data = df.Games_Critics,
-#   Critic=="Rock, Paper, Shotgun"
-# )
 
 dummy <- NULL
 
